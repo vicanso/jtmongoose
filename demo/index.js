@@ -1,5 +1,5 @@
 (function() {
-  var Book, Client, Collection, Schema, bookSchema, jtMongoose, mongoose, options, _;
+  var Book, Client, Collection, Schema, bookSchema, jtMongoose, mongoose, options, profileModel, profileSchema, _;
 
   _ = require('underscore');
 
@@ -77,5 +77,13 @@
   };
 
   Book = jtMongoose.model('test', 'Mark', bookSchema);
+
+  profileSchema = jtMongoose.schema('test', 'system.profile', {}, false);
+
+  profileModel = jtMongoose.model('test', 'system.profile', profileSchema);
+
+  profileModel.find({}, function(err, docs) {
+    return console.dir(docs);
+  });
 
 }).call(this);
