@@ -1,5 +1,5 @@
 (function() {
-  var Book, Client, Collection, Schema, bookSchema, jtMongoose, mongoose, options, profileModel, profileSchema, _;
+  var Book, Client, Collection, Schema, book, bookSchema, jtMongoose, mongoose, options, profileModel, profileSchema, _;
 
   _ = require('underscore');
 
@@ -82,8 +82,12 @@
 
   profileModel = jtMongoose.model('test', 'system.profile', profileSchema);
 
-  profileModel.find({}, function(err, docs) {
-    return console.dir(docs);
+  book = new Book({
+    id: '123',
+    name: 'test',
+    price: '1.23'
   });
+
+  console.dir(book.toJSON());
 
 }).call(this);

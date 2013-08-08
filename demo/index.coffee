@@ -54,10 +54,17 @@ Book = jtMongoose.model 'test', 'Mark', bookSchema
 
 profileSchema = jtMongoose.schema 'test', 'system.profile', {}, false
 profileModel = jtMongoose.model 'test', 'system.profile', profileSchema
-profileModel.find {}, (err, docs) ->
-  console.dir docs
+# profileModel.find {}, (err, docs) ->
+#   console.dir docs
 
 # console.time 'log'
+
+book = new Book {
+  id : '123'
+  name : 'test'
+  price : '1.23'
+}
+console.dir book.toJSON()
 
 # Book.findOneAndUpdate {id : 122}, {author : 'test'}, (err, doc) ->
 #   console.timeEnd 'log'
