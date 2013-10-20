@@ -1,36 +1,54 @@
 _ = require 'underscore'
 mongoose = require 'mongoose'
-Collection = mongoose.Collection
+requireTree = require 'require-tree'
+Statistics = require './statistics'
+
 Schema = mongoose.Schema
 class Client
-  constructor : ->
-    @dbs = {}
+  constructor : (name, uri, options) ->
+    if !options
+      options = uri
+      uri = name
+
+    @conn = mongoose.createConnection uri, options
     @schemas = {}
-  db : (name) ->
-    @dbs[name]
-  on : (dbName, event, cbf) ->
-    db = @db dbName
-    if db
-      db.on event, cbf
-  init : (name, uri, options) ->
-    if name && uri && !@dbs[name]
-      @dbs[name] = mongoose.createConnection uri, options
+    @statistics = new Statistics @conn
+  mongoose : mongoose
+  set : (key, value) ->
+    if key == 'cacheRecords' && _.isNumber value
+      @statistics.cacheRecords = GLOBAL.parseInt value
+  enableProfiling : (funcs) ->
+    @statistics.profiling funcs
+  getConnection : (name) ->
+    @conn
+  on : (event, cbf) ->
+    @statistics.on event, cbf
     @
-  schema : (dbName, name, obj, options) ->
+  initModels : (path) ->
+    models = requireTree path
+    _.each models, (model, name) =>
+      name = name.charAt(0).toUpperCase() + name.substring 1
+      schema = @schema name, model.schema, model.options
+      if model.indexes
+        _.each model.indexes, (options) ->
+          schema.index.apply schema, options
+      @model name, schema
+    @
+  schema : (name, obj, options) ->
     if obj
-      @schemas["#{dbName}_#{name}"] = new Schema obj, options
-    @schemas["#{dbName}_#{name}"]
-  model : (dbName, name, schema, args...) ->
-    db = @db dbName
-    if !db
+      @schemas[name] = new Schema obj, options
+    @schemas[name]
+  model : (name, schema, args...) ->
+    conn = @conn
+    if !conn
       null
     else if !schema
-      db.model name
+      conn.model name
     else if name
       schema = new Schema schema if !(schema instanceof Schema)
-      @schemas["#{dbName}_#{name}"] = schema
+      @schemas[name] = schema
       args.unshift name, schema
-      db.model.apply db, args
+      conn.model.apply conn, args
     else
       null
 

@@ -1,2 +1,2 @@
 Client = require './lib/client'
-module.exports = new Client
+module.exports = Client

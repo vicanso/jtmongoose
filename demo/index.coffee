@@ -1,70 +1,109 @@
+JTMongoose = require '../index'
 _ = require 'underscore'
-mongoose = require 'mongoose'
-Collection = mongoose.Collection
-Schema = mongoose.Schema
-Client = require '../lib/client'
-jtMongoose = new Client
+path = require 'path'
+dbUri = 'mongodb://vicanso:test@localhost:10020/test'
 options =
   db : 
-    native_parser : false
+    native_parser : true
   server :
     poolSize : 5
-jtMongoose.init 'test', 'mongodb://localhost:10020/test', options
+    socketOptions : 
+      connectTimeoutMS : 500
 
-jtMongoose.on 'test', 'connected', (err, data) ->
-  console.dir 'connected'
-  book = new Book {
-    id : 1110
-    name : 'adfe'
-    author : 'vicanso'
-  }
-  book.save()
-jtMongoose.on 'test', 'disconnected', (err, data) ->
-  console.dir 'disconnected'
+client = new JTMongoose dbUri, options
 
-bookSchema = jtMongoose.schema 'test', 'Mark', {
-  id : 
-    type : Number
-    required : true
-  name : 
-    type : String
-    required : true
-  author : 
-    type : String
-    required : true
-  price : Number
-  createdAt :
-    type : Date
-    default : Date.now
-  info :
-    production : String
-}
+client.on 'log', (log) ->
+  console.dir log
 
-jtMongoose.db('test').setProfiling 'all', 1, (err, query, items) ->
+client.on 'profiling', (records) ->
+  console.dir records
+
+client.initModels path.join __dirname, './models'
+client.enableProfiling 'ensureIndex findAndModify findOne find insert save update getIndexes mapReduce'.split ' '
+
+setInterval ->
+  Book = client.model 'Book'
+  Book.findOne {id : 1}, (err, doc) ->
+    console.dir err
+    console.dir doc
+, 1000
+
+# jtMongoose.on dbName, 'connected', ->
+#   console.dir 'connected'
+
+# jtMongoose.on dbName, 'disconnected', ->
+#   console.dir 'disconnected'
+
+# jtMongoose.on dbName, 'error', (err)->
+#   console.dir err
+
+# _ = require 'underscore'
+# mongoose = require 'mongoose'
+# Collection = mongoose.Collection
+# Schema = mongoose.Schema
+# Client = require '../lib/client'
+# jtMongoose = new Client
+# options =
+#   db : 
+#     native_parser : false
+#   server :
+#     poolSize : 5
+# jtMongoose.init 'test', 'mongodb://localhost:10020/test', options
+
+# jtMongoose.on 'test', 'connected', (err, data) ->
+#   console.dir 'connected'
+#   book = new Book {
+#     id : 1110
+#     name : 'adfe'
+#     author : 'vicanso'
+#   }
+#   book.save()
+# jtMongoose.on 'test', 'disconnected', (err, data) ->
+#   console.dir 'disconnected'
+
+# bookSchema = jtMongoose.schema 'test', 'Mark', {
+#   id : 
+#     type : Number
+#     required : true
+#   name : 
+#     type : String
+#     required : true
+#   author : 
+#     type : String
+#     required : true
+#   price : Number
+#   createdAt :
+#     type : Date
+#     default : Date.now
+#   info :
+#     production : String
+# }
+
+# jtMongoose.db('test').setProfiling 'all', 1, (err, query, items) ->
   # console.dir err
   # console.dir query
 
 # Connection#setProfiling(level, [ms], callback)
-bookSchema.methods.findSameAuthor = (cbf) ->
-  @model('Mark').find {author : @author}, cbf
-bookSchema.statics.findByAuthor = (author, cbf) ->
-  this.find {author : author}, cbf
+# bookSchema.methods.findSameAuthor = (cbf) ->
+#   @model('Mark').find {author : @author}, cbf
+# bookSchema.statics.findByAuthor = (author, cbf) ->
+#   this.find {author : author}, cbf
 
-Book = jtMongoose.model 'test', 'Mark', bookSchema
+# Book = jtMongoose.model 'test', 'Mark', bookSchema
 
-profileSchema = jtMongoose.schema 'test', 'system.profile', {}, false
-profileModel = jtMongoose.model 'test', 'system.profile', profileSchema
+# profileSchema = jtMongoose.schema 'test', 'system.profile', {}, false
+# profileModel = jtMongoose.model 'test', 'system.profile', profileSchema
 # profileModel.find {}, (err, docs) ->
 #   console.dir docs
 
 # console.time 'log'
 
-book = new Book {
-  id : '123'
-  name : 'test'
-  price : '1.23'
-}
-console.dir book.toJSON()
+# book = new Book {
+#   id : '123'
+#   name : 'test'
+#   price : '1.23'
+# }
+# console.dir book.toJSON()
 
 # Book.findOneAndUpdate {id : 122}, {author : 'test'}, (err, doc) ->
 #   console.timeEnd 'log'

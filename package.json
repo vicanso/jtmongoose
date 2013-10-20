@@ -1,0 +1,25 @@
+{
+  "name" : "jtmongoose",
+  "description" : "base on mongoose",
+  "version" : "0.0.1",
+  "author" : {
+    "name" : "vicanso 墨鱼仔",
+    "email" : "vicansocanbico@gmail.com"
+  },
+  "keywords" : [
+    "node",
+    "mongodb",
+    "mongoose"
+  ],
+  "dependencies" : {
+    "mongoose" : "latest",
+    "underscore" : "latest",
+    "require-tree" : "latest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vicanso/jtmongoose"
+  },
+  "main": "index",
+  "readmeFilename": "README.md"
+}

@@ -1,93 +1,49 @@
 (function() {
-  var Book, Client, Collection, Schema, book, bookSchema, jtMongoose, mongoose, options, profileModel, profileSchema, _;
+  var JTMongoose, client, dbUri, options, path, _;
+
+  JTMongoose = require('../index');
 
   _ = require('underscore');
 
-  mongoose = require('mongoose');
+  path = require('path');
 
-  Collection = mongoose.Collection;
-
-  Schema = mongoose.Schema;
-
-  Client = require('../lib/client');
-
-  jtMongoose = new Client;
+  dbUri = 'mongodb://vicanso:test@localhost:10020/test';
 
   options = {
     db: {
-      native_parser: false
+      native_parser: true
     },
     server: {
-      poolSize: 5
+      poolSize: 5,
+      socketOptions: {
+        connectTimeoutMS: 500
+      }
     }
   };
 
-  jtMongoose.init('test', 'mongodb://localhost:10020/test', options);
+  client = new JTMongoose(dbUri, options);
 
-  jtMongoose.on('test', 'connected', function(err, data) {
-    var book;
-    console.dir('connected');
-    book = new Book({
-      id: 1110,
-      name: 'adfe',
-      author: 'vicanso'
+  client.on('log', function(log) {
+    return console.dir(log);
+  });
+
+  client.on('profiling', function(records) {
+    return console.dir(records);
+  });
+
+  client.initModels(path.join(__dirname, './models'));
+
+  client.enableProfiling('ensureIndex findAndModify findOne find insert save update getIndexes mapReduce'.split(' '));
+
+  setInterval(function() {
+    var Book;
+    Book = client.model('Book');
+    return Book.findOne({
+      id: 1
+    }, function(err, doc) {
+      console.dir(err);
+      return console.dir(doc);
     });
-    return book.save();
-  });
-
-  jtMongoose.on('test', 'disconnected', function(err, data) {
-    return console.dir('disconnected');
-  });
-
-  bookSchema = jtMongoose.schema('test', 'Mark', {
-    id: {
-      type: Number,
-      required: true
-    },
-    name: {
-      type: String,
-      required: true
-    },
-    author: {
-      type: String,
-      required: true
-    },
-    price: Number,
-    createdAt: {
-      type: Date,
-      "default": Date.now
-    },
-    info: {
-      production: String
-    }
-  });
-
-  jtMongoose.db('test').setProfiling('all', 1, function(err, query, items) {});
-
-  bookSchema.methods.findSameAuthor = function(cbf) {
-    return this.model('Mark').find({
-      author: this.author
-    }, cbf);
-  };
-
-  bookSchema.statics.findByAuthor = function(author, cbf) {
-    return this.find({
-      author: author
-    }, cbf);
-  };
-
-  Book = jtMongoose.model('test', 'Mark', bookSchema);
-
-  profileSchema = jtMongoose.schema('test', 'system.profile', {}, false);
-
-  profileModel = jtMongoose.model('test', 'system.profile', profileSchema);
-
-  book = new Book({
-    id: '123',
-    name: 'test',
-    price: '1.23'
-  });
-
-  console.dir(book.toJSON());
+  }, 1000);
 
 }).call(this);
