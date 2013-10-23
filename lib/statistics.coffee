@@ -5,8 +5,7 @@ mongoose = require 'mongoose'
 Collection = mongoose.Collection
 class Statistics extends events.EventEmitter
   constructor : (@conn)->
-    @cacheRecords = 100
-    @profilingRecords = []
+    @excepts = []
     _.each 'connected disconnected error'.split(' '), (event) =>
       @conn.on event, (msg) =>
         @emit 'log', {
@@ -15,33 +14,42 @@ class Statistics extends events.EventEmitter
           param : msg
           date : new Date()
         }
-  profiling : (funcs) ->
+  # addExcept : (collectionNames) ->
+  #   excepts = _.uniq @excepts.concat collectionNames
+  #   @excepts = excepts.sort()
+  # isExcept : (collection) ->
+  #   ~_.indexOf @excepts, collection, true
+
+  profiling : (funcs, conn) ->
     self = @
     fn = Collection.prototype
+    funcs ?= _.functions fn
     _.each funcs, (funcName) ->
-      if !fn["jt_#{funcName}"]
-        tmp = fn[funcName]
-        fn[funcName] = (args...) ->
-          start = Date.now()
+      tmp = fn[funcName]
+      fn[funcName] = (args...) ->
+        if @conn == conn
+          collection = @name
+          start = GLOBAL.process.hrtime()
           cbf = args.pop()
-          se = JSON.stringify args
+          tmpArgs = args
           args.push _.wrap cbf, (cb, args...) ->
+            diff = GLOBAL.process.hrtime start
+            elapsedTime = GLOBAL.parseFloat (diff[0] * 1e3 + diff[1] / 1e6).toFixed 2
             self.record {
               category : 'handle'
               method : funcName
-              param : se
+              params : JSON.stringify tmpArgs
               date : new Date()
-              elapsedTime : Date.now() - start
+              collection : collection
+              elapsedTime : elapsedTime
             }
             cb.apply null, args
           tmp.apply @, args
-        fn["jt_#{funcName}"] = tmp
+        else
+          tmp.apply @, args
+        fn["jt_#{funcName}"] ?= tmp
   record : (profiling) ->
-    profilingRecords = @profilingRecords
-    profilingRecords.push profiling
-    if profilingRecords.length == @cacheRecords
-      @emit 'profiling', profilingRecords
-      @profilingRecords = []
+    @emit 'profiling', profiling
 
 
 

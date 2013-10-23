@@ -15,10 +15,12 @@ class Client
     @statistics = new Statistics @conn
   mongoose : mongoose
   set : (key, value) ->
-    if key == 'cacheRecords' && _.isNumber value
-      @statistics.cacheRecords = GLOBAL.parseInt value
   enableProfiling : (funcs) ->
-    @statistics.profiling funcs
+    @statistics.profiling funcs, @conn
+  # profilingExcept : (collectionNames) ->
+  #   if collectionNames
+  #     collectionNames = [collectionNames] if !_.isArray collectionNames
+  #     @statistics.addExcept collectionNames
   getConnection : (name) ->
     @conn
   on : (event, cbf) ->
