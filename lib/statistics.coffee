@@ -11,7 +11,7 @@ class Statistics extends events.EventEmitter
         @emit 'log', {
           category : 'event'
           method : event
-          param : msg
+          params : msg
           date : new Date()
         }
   # addExcept : (collectionNames) ->
