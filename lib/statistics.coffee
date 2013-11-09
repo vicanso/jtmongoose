@@ -39,7 +39,7 @@ class Statistics extends events.EventEmitter
               category : 'handle'
               method : funcName
               params : JSON.stringify tmpArgs
-              date : new Date()
+              date : new Date
               collection : collection
               elapsedTime : elapsedTime
             }
