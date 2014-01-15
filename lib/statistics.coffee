@@ -31,14 +31,14 @@ class Statistics extends events.EventEmitter
           collection = @name
           start = GLOBAL.process.hrtime()
           cbf = args.pop()
-          tmpArgs = args
+          tmpArgs = JSON.stringify args
           args.push _.wrap cbf, (cb, args...) ->
             diff = GLOBAL.process.hrtime start
             elapsedTime = GLOBAL.parseFloat (diff[0] * 1e3 + diff[1] / 1e6).toFixed 2
             self.record {
               category : 'handle'
               method : funcName
-              params : JSON.stringify tmpArgs
+              params : tmpArgs
               date : new Date
               collection : collection
               elapsedTime : elapsedTime

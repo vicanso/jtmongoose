@@ -1,4 +1,5 @@
 (function() {
+
   module.exports = {
     schema: {
       id: {
